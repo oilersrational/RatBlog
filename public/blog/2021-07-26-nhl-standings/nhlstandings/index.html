@@ -12,22 +12,22 @@
     <meta property="og:site_name" content="RationalOilers Blog (RatBlog)" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="article" />
-    <meta property="og:url" content="https://example.com/blog/2021-07-26-nhl-standings/nhlstandings/" />
+    <meta property="og:url" content="https://ratblog.netlify.app/blog/2021-07-26-nhl-standings/nhlstandings/" />
     <meta property="og:title" content="What Points System Should the NHL be Using?" />
-    <meta property="og:image" content="https://example.com" />
+    <meta property="og:image" content="https://ratblog.netlify.app/" />
     <meta property="og:description" content="" />
 
     <meta name="twitter:card" content="summary_large_image" />
     
     <meta name="twitter:title" content="What Points System Should the NHL be Using?" />
     <meta name="twitter:description" content="" />
-    <meta name="twitter:image" content="https://example.com" />
+    <meta name="twitter:image" content="https://ratblog.netlify.app/" />
 
-    <link rel="canonical" href="https://example.com/blog/2021-07-26-nhl-standings/nhlstandings/">
+    <link rel="canonical" href="https://ratblog.netlify.app/blog/2021-07-26-nhl-standings/nhlstandings/">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg==" crossorigin="anonymous" />
 
-    <link rel="stylesheet" href="https://example.comcss/custom.css" />
+    <link rel="stylesheet" href="https://ratblog.netlify.app/css/custom.css" />
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/github-gist.min.css" integrity="sha512-od7JLoOTxM8w/HSKGzP9Kexc20K9p/M2zxSWsd7H1e4Ctf+8SQFtCWEZnW5u6ul5ehSECa5QmOk9ju2nQMmlVA==" crossorigin="anonymous" />
@@ -36,10 +36,10 @@
     
 
     <link rel="shortcut icon"
-        href="https://example.com/images/favicon.png">
+        href="https://ratblog.netlify.app/images/favicon.png">
 
     
-    <link href="https://example.com/index.xml" rel="alternate" type="application/rss+xml" title="RationalOilers Blog (RatBlog)" />
+    <link href="https://ratblog.netlify.app/index.xml" rel="alternate" type="application/rss+xml" title="RationalOilers Blog (RatBlog)" />
     
 </head>
 
@@ -49,7 +49,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-auto">
-                <a href="https://example.com">
+                <a href="https://ratblog.netlify.app/">
                     <h1 class="name">RatBlog</h1>
                 </a>
             </div>
@@ -59,14 +59,14 @@
             <ul class="nav nav-primary">
                 
                 <li class="nav-item">
-                    <a class="nav-link" href="https://example.com/">
+                    <a class="nav-link" href="https://ratblog.netlify.app/">
                         
                         Home
                     </a>
                 </li>
                 
                 <li class="nav-item">
-                    <a class="nav-link" href="https://example.com/about/">
+                    <a class="nav-link" href="https://ratblog.netlify.app/about/">
                         
                         About
                     </a>
@@ -131,13 +131,13 @@
 <p>What I decided to do was borrow various points systems from other sports and leagues, apply them to every NHL season since the 2005 lockout, and compare the order of NHL teams’ points in each points system to the order of NHL teams in that season with respect to (1) Wins, and (2) Goal Differential. It’s worth mentioning here that I only use non-empty net goals to calculate goal differential. A 4-1 win with two empty-netters, say, is more a one-goal game than it is a three-goal game, in my opinion. The various extant systems I can think of are as follows: (1) the current NHL system (two points for a win, one for an OT or shootout loss), (2) The pre-lockout NHL system (two points for a win, and one point each if the game ends tied after overtime), (3) the system shared by the other three Big-4 leagues (no points for a loss, N points for a win – it doesn’t actually matter how many points, and in these leagues there is currently no standing points, but rather they just operate in terms of wins and losses, so N is one by default), (4) the IIHF system (three points for a regulation win, two for an extra time win, and one for an extra time loss), and (5) the English Premier League (EPL) system (three points for a win, and one each if the game ends tied). Of course, there may be more systems out there. There also may be a nonexistent system that optimizes the order of the standings with respect to wins and points. I’m not interested in these because the NHL would never adopt such a system (I’m not sure they’ll ever adopt any different system than the one they use now, but if they did it’d be one that already exists).</p>
 <p>To actually analyze which of these systems is the best, I first organize the data such that I have every team’s detailed record from 2005 – 2021 (I got this data from hockey-reference.com). I also have every team’s goals for and goals against, as well as their empty net goals for and against so I can remove them (from hockey-reference.com and morehockeystats.com, respectively). I then calculate a point total for each team for each season according to each of my predetermined points systems. From there, I calculate a Spearman rank-order correlation between (1) each team’s hypothetical points and their wins, and (2) each team’s hypothetical points and their non-empty net goal differential. The rationale for using a Spearman correlation is: I don’t care so much whether our various points systems maintain the distance between adjacent teams nearly as much as I care whether they maintain the order. A regular Pearson correlation, I suspect, would be influenced by differences in spread among teams at the top and bottom of the standings. After I have these correlations, what I’m interested in is how much error is produced by each points system, or how much the hypothetical points order differs from the order for wins and goal differential. An easy way to calculate these is, for each comparison (wins and GD), take 1 – <em>r</em><sup>2</sup>, where <em>r</em> is the correlation. If we add each of the errors (one error for wins and one for non-empty net goal differential) together, we’ve got a cumulative error value for each points system. For each points system, I’ve then included every year since the lockout to get a mean cumulative error, which we can then compare across points systems. This will tell us which points system best preserves the order of teams with respect to wins and goal differential, or at least, which points system would <strong>hypothetically have done so</strong> across the last sixteen seasons inclusive. It’s worth mentioning that this is an unweighted average, so wins and goal differential are equally represented in the errors. I’ll circle back to this later. Here’s that, plotted (lower is better):</p>
 <div class="figure">
-<img src="https://example.com/images/StandingsP1.png" alt="Cumulative Error by Points System (2006 - 2021)" />
+<img src="https://ratblog.netlify.app/images/StandingsP1.png" alt="Cumulative Error by Points System (2006 - 2021)" />
 <p class="caption">Cumulative Error by Points System (2006 - 2021)</p>
 </div>
 <p>This is called a violin plot because the shape of the simulated distribution for each group of data often resembles a violin. I use these plots to show the data and their approximated distributions rather than just the mean. I think this is helpful in making conclusions about what we’re actually seeing, because we can see the way the data overlap, rather than just comparing the mean. An important consideration: these plots generally obscure differences by making them look smaller than they are. If I plotted only the mean of each group (or a bar chart of some description), there’d be no need to be as ‘zoomed out’ as we are here, and the differences would look larger. Reminder, lower error is better. It can clearly be seen that the two systems that include ties (EPL and pre-lockout NHL) have the highest mean cumulative error. So, no ties please. The next-worst-performing system is the current one. This is mildly encouraging; at least the current system is an upgrade over the previous one. But let’s focus now on the two systems that would be an upgrade on the one we currently have. The IIHF points system is <em>just barely</em> an upgrade over the current system. This was surprising, as I have been on record saying I preferred a switch to thee IIHF system. Perhaps even more surprising: the standard Big-4 system outperforms any other, by almost any metric you could glean from the graph. It has the lowest maximum cumulative error; the lowest (actually the two lowest) minimum cumulative errors; and it also has the lowest mean cumulative error. Not only this, but the Big-4 system also has no specific regard for goal difference. Rather, it is simply perfectly correlated with wins. This means that the entire error present for this system is <em>strictly</em> with respect to goal difference. From this, we can infer two things: first, the more heavily you weigh wins over goal difference (which as I said earlier you can reasonably do), the more this system will outperform the others. This is because the error with respect to wins is zero. Second, we can infer that wins and goal differential are naturally correlated to a substantial enough degree that any system perfectly in line with one of them (wins) is not punished to a large degree with respect to the other (goal differential).</p>
 <p>So in summary, I’ve had to walk back my preference for the IIHF system, as it is consistently outperformed by the standard big-4 system of just wins and losses. Taking a look at how the standings would have looked this past season with a purely wins-based points system (where I’ve set wins as worth two points to maintain consistency with the point range of a normal NHL season):</p>
 <div class="figure">
-<img src="https://example.com/images/StandingsTable.png" alt="Hypothetical NHL Standings 2020-2021" />
+<img src="https://ratblog.netlify.app/images/StandingsTable.png" alt="Hypothetical NHL Standings 2020-2021" />
 <p class="caption">Hypothetical NHL Standings 2020-2021</p>
 </div>
 <p>The tiebreaker here is non-empty net goal difference, purely out of convenience because I had included it to this point. A few interesting things to note: (1) Cup Finalist Montréal misses the playoffs in favour of Calgary, (2) the biggest rankings jumpers would be Calgary (three spots), and Tampa Bay, Edmonton, and New Jersey (two spots), and (3) the biggest fallers would be Dallas (five spots!), and Carolina (two spots).</p>
