@@ -1,0 +1,353 @@
+---
+title: "What Points System Should the NHL be Using?"
+author: "OilersRational"
+date: '2021-07-26'
+output:
+  html_document:
+    
+    df_print: paged
+  pdf_document: default
+---
+
+```{r packages, include=FALSE}
+#Exploring new standings schemata
+#What I want to do is evaluate how well various schemata capture what the NHL standings should capture
+#I'm going to import the detailed standings from every post-lockout season,
+#then I'm going to apply various schemata (e.g., win - 2, OTL - 1, L - 0) that are in use various places,
+#Them I'm going to see what the cumulative error is when correlating the output of that with two measures 
+#that I think the standings should reflect: Wins, and goal difference (but only even strength goal difference)
+
+#Basically, what schema most retains the order dictated by wins and goals (which are two components of
+#what the standings should reflect)
+library(dplyr)
+library(stringi)
+library(stats)
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+```
+
+```{get data, include = FALSE}
+
+setwd("~/Documents/Homework/HockeyStuff/NHLStandings")
+
+temp = list.files(pattern = "NHLd", all.files = F)
+for (i in 1:length(temp)) {
+  nam = paste("data", i, sep = "")
+  data = read.csv(temp[i], header = T, stringsAsFactors = FALSE,
+               fileEncoding = "latin1")
+  data = data[,c(1:5)]
+  colnames(data)[2] = "Team"
+  run = 1:nrow(data)
+  for(i in run){
+    data$totWins[i] =   as.numeric(strsplit(data$Overall, "[-]")[[i]][1])
+    data$regLosses[i] = as.numeric(strsplit(data$Overall, "[-]")[[i]][2])
+    data$ETLosses[i] =  as.numeric(strsplit(data$Overall, "[-]")[[i]][3])
+    data$OTWins[i] =    as.numeric(strsplit(data$Overtime, "[-]")[[i]][1])
+    data$OTLosses[i] =  as.numeric(strsplit(data$Overtime, "[-]")[[i]][2])
+    data$SOWins[i] =    as.numeric(strsplit(data$Shootout, "[-]")[[i]][1])
+    data$SOLosses[i] =  as.numeric(strsplit(data$Shootout, "[-]")[[i]][2])
+    data$regWins[i] =   as.numeric(data$totWins[i] - data$OTWins[i] - data$SOWins[i])
+    data$ETWins[i] =    as.numeric(data$SOWins[i] + data$OTWins[i])
+  }
+  assign(nam, data)
+}
+
+rm(data)
+
+temp2 = list.files(pattern="goal")
+for (i in 1:length(temp2)) {
+  nam = paste("goalData", i, sep = "")
+  all_content = readLines(temp2[i])
+  skip_second = all_content[-1]
+  data = read.csv(textConnection(skip_second), header = TRUE, stringsAsFactors = FALSE)
+  data = data %>%
+    select(X, GF, GA)
+  data$X = gsub("\\*", "", as.character(data$X))
+  colnames(data)[1] = "Team"
+  assign(nam, data)
+}
+
+temp3 = list.files(pattern="EN")
+for (i in 1:length(temp3)) {
+  nam = paste("ENData", i, sep = "")
+  data = read.csv(temp3[i], header = T, stringsAsFactors = FALSE)
+  data = data %>%
+    select(Team, Scored)
+  data$Team = stri_trans_totitle(data$Team)
+  assign(nam, data)
+}
+```
+
+```{clean and transform data, include = F}
+#Shit goes awry here for naming discrepancies. Let's see if I can fix
+ENData1$Team = recode(ENData1$Team, "Winnipeg Jets" = "Atlanta Thrashers")
+goalData1$Team = recode(goalData1$Team, "Mighty Ducks of Anaheim" = "Anaheim Ducks")
+data1$Team = recode(data1$Team, "Mighty Ducks of Anaheim" = "Anaheim Ducks")
+
+ENData2$Team = recode(ENData2$Team, "Winnipeg Jets" = "Atlanta Thrashers")
+ENData3$Team = recode(ENData3$Team, "Winnipeg Jets" = "Atlanta Thrashers")
+ENData4$Team = recode(ENData4$Team, "Winnipeg Jets" = "Atlanta Thrashers")
+ENData5$Team = recode(ENData5$Team, "Winnipeg Jets" = "Atlanta Thrashers")
+ENData6$Team = recode(ENData6$Team, "Winnipeg Jets" = "Atlanta Thrashers")
+data6$Team = recode(data6$Team, "Phoenix Coyotes" = "Arizona Coyotes")
+goalData6$Team = recode(goalData6$Team, "Phoenix Coyotes" = "Arizona Coyotes")
+ENData10$Team = recode(ENData10$Team, "Phoenix Coyotes" = "Arizona Coyotes")
+
+
+df06 = merge(data1,  goalData1) %>% merge(ENData1)
+df07 = merge(data2,  goalData2) %>% merge(ENData2)
+df08 = merge(data3,  goalData3) %>% merge(ENData3)
+df09 = merge(data4,  goalData4) %>% merge(ENData4)
+df10 = merge(data5,  goalData5) %>% merge(ENData5)
+df11 = merge(data6,  goalData6) %>% merge(ENData6)
+df12 = merge(data7,  goalData7) %>% merge(ENData7)
+df13 = merge(data8,  goalData8) %>% merge(ENData8)
+df14 = merge(data9,  goalData9) %>% merge(ENData9)
+df15 = merge(data10, goalData10) %>% merge(ENData10)
+df16 = merge(data11, goalData11) %>% merge(ENData11)
+df17 = merge(data12, goalData12) %>% merge(ENData12)
+df18 = merge(data13, goalData13) %>% merge(ENData13)
+df19 = merge(data14, goalData14) %>% merge(ENData14)
+df20 = merge(data15, goalData15) %>% merge(ENData15)
+df21 = merge(data16, goalData16) %>% merge(ENData16)
+
+
+df06 = df06 %>% mutate(GDif = GF - GA - Scored)
+df07 = df07 %>% mutate(GDif = GF - GA - Scored)
+df08 = df08 %>% mutate(GDif = GF - GA - Scored)
+df09 = df09 %>% mutate(GDif = GF - GA - Scored)
+df10 = df10 %>% mutate(GDif = GF - GA - Scored)
+df11 = df11 %>% mutate(GDif = GF - GA - Scored)
+df12 = df12 %>% mutate(GDif = GF - GA - Scored)
+df13 = df13 %>% mutate(GDif = GF - GA - Scored)
+df14 = df14 %>% mutate(GDif = GF - GA - Scored)
+df15 = df15 %>% mutate(GDif = GF - GA - Scored)
+df16 = df16 %>% mutate(GDif = GF - GA - Scored)
+df17 = df17 %>% mutate(GDif = GF - GA - Scored)
+df18 = df18 %>% mutate(GDif = GF - GA - Scored)
+df19 = df19 %>% mutate(GDif = GF - GA - Scored)
+df20 = df20 %>% mutate(GDif = GF - GA - Scored)
+df21 = df21 %>% mutate(GDif = GF - GA - Scored)
+
+datalist = list(df06,
+                df07,
+                df08,
+                df09,
+                df10,
+                df11,
+                df12,
+                df13,
+                df14,
+                df15,
+                df16,
+                df17,
+                df18,
+                df19,
+                df20,
+                df21)
+```
+
+```{apply transformations and compute calculations, include = F}
+
+dflist = lapply(datalist, function(x) {
+  mutate(x,
+         NHLScheme = (2 * totWins) + (1 * ETLosses),
+         Big4Scheme = (2 * totWins),
+         OldNHLScheme = (2 * (totWins - SOWins)) + (1 * SOWins) + (1 * SOLosses),
+         IIHFScheme = (3 * regWins) + (2 * ETWins) + (1 * ETLosses),
+         EPLScheme = (3 * (totWins - SOWins)) + (1 * SOWins) + (1 * SOLosses))
+})
+
+corlist = lapply(dflist, function(x) {
+  mutate(x,
+         NHLWinCor = cor(NHLScheme, totWins, method = "spearman"),
+         NHLGoalCor = cor(NHLScheme, GDif, method = "spearman"),
+         Big4WinCor = cor(Big4Scheme, totWins, method = "spearman"),
+         Big4GoalCor = cor(Big4Scheme, GDif, method = "spearman"),
+         OldNHLWinCor = cor(OldNHLScheme, totWins, method = "spearman"),
+         OldNHLGoalCor = cor(OldNHLScheme, GDif, method = "spearman"),
+         IIHFWinCor = cor(IIHFScheme, totWins, method = "spearman"),
+         IIHFGoalCor = cor(IIHFScheme, GDif, method = "spearman"),
+         EPLWinCor = cor(EPLScheme, totWins, method = "spearman"),
+         EPLGoalCor = cor(EPLScheme, GDif, method = "spearman"),
+         cumErrorNHL =    (1 - NHLWinCor^2) + (1 - NHLGoalCor^2),
+         cumErrorBig4 =    (1 - Big4WinCor^2) + (1 - Big4GoalCor^2),
+         cumErrorOldNHL = (1 - OldNHLWinCor^2) + (1 - OldNHLGoalCor^2),
+         cumErrorIIHF =   (1 - IIHFWinCor^2) + (1 - IIHFGoalCor^2),
+         cumErrorEPL =    (1 - EPLWinCor^2) + (1 - EPLGoalCor^2),
+         logErrorNHL =    log(cumErrorNHL),
+         logErrorBig4 =    log(cumErrorBig4),
+         logErrorOldNHL = log(cumErrorOldNHL),
+         logErrorIIHF =   log(cumErrorIIHF),
+         logErrorEPL =    log(cumErrorEPL))
+})
+
+
+df06 = corlist[[1]]
+df07 = corlist[[2]]
+df08 = corlist[[3]]
+df09 = corlist[[4]]
+df10 = corlist[[5]]
+df11 = corlist[[6]]
+df12 = corlist[[7]]
+df13 = corlist[[8]]
+df14 = corlist[[9]]
+df15 = corlist[[10]]
+df16 = corlist[[11]]
+df17 = corlist[[12]]
+df18 = corlist[[13]]
+df19 = corlist[[14]]
+df20 = corlist[[15]]
+df21 = corlist[[16]]
+```
+
+```{plot setup, include = F}
+
+cordf06 = slice_head(df06)
+cordf07 = slice_head(df07)
+cordf08 = slice_head(df08)
+cordf09 = slice_head(df09)
+cordf10 = slice_head(df10)
+cordf11 = slice_head(df11)
+cordf12 = slice_head(df12)
+cordf13 = slice_head(df13)
+cordf14 = slice_head(df14)
+cordf15 = slice_head(df15)
+cordf16 = slice_head(df16)
+cordf17 = slice_head(df17)
+cordf18 = slice_head(df18)
+cordf19 = slice_head(df19)
+cordf20 = slice_head(df20)
+cordf21 = slice_head(df21)
+
+cordf06[,44] = "06"
+cordf07[,44] = "07"
+cordf08[,44] = "08"
+cordf09[,44] = "09"
+cordf10[,44] = "10"
+cordf11[,44] = "11"
+cordf12[,44] = "12"
+cordf13[,44] = "13"
+cordf14[,44] = "14"
+cordf15[,44] = "15"
+cordf16[,44] = "16"
+cordf17[,44] = "17"
+cordf18[,44] = "18"
+cordf19[,44] = "19"
+cordf20[,44] = "20"
+cordf21[,44] = "21"
+
+cordf = rbind(cordf06,
+              cordf07,
+              cordf08,
+              cordf09,
+              cordf10,
+              cordf11,
+              cordf12,
+              cordf13,
+              cordf14,
+              cordf15,
+              cordf16,
+              cordf17,
+              cordf18,
+              cordf19,
+              cordf20,
+              cordf21)
+
+plotData = melt(cordf, id.vars = "V44", measure.vars = c("cumErrorNHL",
+                                                         "cumErrorOldNHL",
+                                                         "cumErrorBig4",
+                                                         "cumErrorIIHF",
+                                                         "cumErrorEPL"))
+
+ggplot(plotData, aes(x = variable, y = value, fill = variable)) + 
+  geom_violin(trim = FALSE) +
+  geom_jitter(shape = 16, position = position_jitter(0.15)) +
+  scale_color_grey() +
+  stat_summary(fun = mean, geom = "point", shape = 95, size = 20) + 
+  scale_x_discrete(name = "Point Scheme", labels = c('Current NHL', 'Pre-Lockout NHL', 'Big-4', "IIHF", "EPL")) +
+  scale_y_continuous(name = "Cumulative Error (Wins + Goals)") +
+  labs(title = "Point System Cumulative Error (2005-2021)") +
+  theme_minimal() +
+  theme(legend.position = "NONE") +
+  theme(axis.text = element_text(size = 10),
+        axis.title = element_text(size = 15))
+
+df06[,44] = "06"
+df07[,44] = "07"
+df08[,44] = "08"
+df09[,44] = "09"
+df10[,44] = "10"
+df11[,44] = "11"
+df12[,44] = "12"
+df13[,44] = "13"
+df14[,44] = "14"
+df15[,44] = "15"
+df16[,44] = "16"
+df17[,44] = "17"
+df18[,44] = "18"
+df19[,44] = "19"
+df20[,44] = "20"
+df21[,44] = "21"
+
+
+regdf = rbind(df06,
+              df07,
+              df08,
+              df09,
+              df10,
+              df11,
+              df12,
+              df13,
+              df14,
+              df15,
+              df16,
+              df17,
+              df18,
+              df19,
+              df20,
+              df21)
+
+df21 = df21 %>%
+  select(Big4Scheme, Team, Overall, GDif, Rk)
+
+df21 = df21 %>%
+  arrange(desc(Big4Scheme), desc(GDif))
+
+df21[,6] = 1:31
+colnames(df21)[5:6] = c("Old Rank", "New Rank")
+
+plot.new()
+table = grid.table(df21, rows = NULL)
+
+```
+
+
+Recently, a [post](https://twitter.com/KwnStorm/status/1411476092066701317) made the rounds on Twitter asking what NHL rule changes people would make if given the opportunity. Several people suggested a change to the NHL points system. And I very strongly agree with this sentiment; in my opinion, the current point system obscures the actual hierarchy of team quality by rewarding teams too much for losing. At present, the NHL awards two points for a win of any type, and a single point for a loss in overtime or a shootout. Zero points are awarded for a regulation loss. Essentially, an extra time loss is half as valuable as a win, even if that win occurs by a convincing margin in regulation time. As an illustration of how this might manifest in the standings, the 2020-2021 Stanley Cup runners-up Montréal Canadiens finished with a record of 24-21-11, for a total of 59 points. Their points total ranked 18th among NHL teams in the regular season, but they were able to qualify for the playoffs on the basis of the way standings points were distributed within the North Division (i.e., even though they were not in the league’s top sixteen regular season teams, they were in the North Division’s top 4). However, just under 19% of their points were awarded for losses. Shootout or overtime losses, but losses nonetheless. In terms of wins, they were tied for 19th with Arizona and Chicago, one ahead of each of Dallas, Vancouver, and Ottawa (yes, they had one more regular season win than Ottawa). They had actually two wins fewer than Calgary. None of these teams sniffed the postseason. This raises the question: is the point system appropriate? Is it fair? Should teams who win – winning being the ultimate goal of the game – be rewarded only twice as much as teams who lose (in extra time)? Or, perhaps more specifically, should teams who lose in extra time be rewarded half as much as teams who win?
+
+
+I set out to answer this question by answering a corollary question: what points system best preserves the order of teams with respect to the quantities that it should. This is a pretty obtuse question, so I’ll break it down. The question is: What quantifiable values should be reflected by the NHL standings? What I come up with is (1) Wins, and (2) Goal differential, and I’ll explain my choice of these in turn. First, it seems noncontroversial to suggest that teams who win more than other teams should be higher in the standings. In fact, you could make a principled argument that the standings should reflect wins and only wins. But, as it stands, the current points system also rewards goal difference, insofar as teams who are tied after regulation are awarded a point even if they ultimately lose. In other words, losses by two or more goals are worth zero points, but one-goal losses are sometimes worth one point (when they occur after regulation time). And I’m not criticizing this; to some degree, this makes sense. If Team A wins the same amount of games as Team B, but all their wins are blowouts and all their losses are one-goalers, they should end up higher in the standings than Team B, provided Team B’s wins and losses are more evenly-distributed However, one might think it’s problematic that wins with a goal differential of two or more are always worth the same as wins with a goal differential of one. What I arrive at is: a reasonable points system should maintain as best is possible the order of (1) Wins, and (2) Goal Differential. This is the assumption off of which I base the ensuing analysis.
+	
+	
+What I decided to do was borrow various points systems from other sports and leagues, apply them to every NHL season since the 2005 lockout, and compare the order of NHL teams’ points in each points system to the order of NHL teams in that season with respect to (1) Wins, and (2) Goal Differential. It’s worth mentioning here that I only use non-empty net goals to calculate goal differential. A 4-1 win with two empty-netters, say, is more a one-goal game than it is a three-goal game, in my opinion. The various extant systems I can think of are as follows: (1) the current NHL system (two points for a win, one for an OT or shootout loss), (2) The pre-lockout NHL system (two points for a win, and one point each if the game ends tied after overtime), (3) the system shared by the other three Big-4 leagues (no points for a loss, N points for a win – it doesn’t actually matter how many points, and in these leagues there is currently no standing points, but rather they just operate in terms of wins and losses, so N is one by default), (4) the IIHF system (three points for a regulation win, two for an extra time win, and one for an extra time loss), and (5) the English Premier League (EPL) system (three points for a win, and one each if the game ends tied). Of course, there may be more systems out there. There also may be a nonexistent system that optimizes the order of the standings with respect to wins and points. I’m not interested in these because the NHL would never adopt such a system (I’m not sure they’ll ever adopt any different system than the one they use now, but if they did it’d be one that already exists). 
+
+
+To actually analyze which of these systems is the best, I first organize the data such that I have every team’s detailed record from 2005 – 2021 (I got this data from hockey-reference.com). I also have every team’s goals for and goals against, as well as their empty net goals for and against so I can remove them (from hockey-reference.com and morehockeystats.com, respectively). I then calculate a point total for each team for each season according to each of my predetermined points systems. From there, I calculate a Spearman rank-order correlation between (1) each team’s hypothetical points and their wins, and (2) each team’s hypothetical points and their non-empty net goal differential. The rationale for using a Spearman correlation is: I don’t care so much whether our various points systems maintain the distance between adjacent teams nearly as much as I care whether they maintain the order. A regular Pearson correlation, I suspect, would be influenced by differences in spread among teams at the top and bottom of the standings. After I have these correlations, what I’m interested in is how much error is produced by each points system, or how much the hypothetical points order differs from the order for wins and goal differential. An easy way to calculate these is, for each comparison (wins and GD), take 1 – *r*^2^, where *r* is the correlation. If we add each of the errors (one error for wins and one for non-empty net goal differential) together, we’ve got a cumulative error value for each points system. For each points system, I’ve then included every year since the lockout to get a mean cumulative error, which we can then compare across points systems. This will tell us which points system best preserves the order of teams with respect to wins and goal differential, or at least, which points system would **hypothetically have done so** across the last sixteen seasons inclusive. It’s worth mentioning that this is an unweighted average, so wins and goal differential are equally represented in the errors. I’ll circle back to this later. Here’s that, plotted (lower is better):
+
+
+![Cumulative Error by Points System (2006 - 2021)](StandingsP1.png)
+
+This is called a violin plot because the shape of the simulated distribution for each group of data often resembles a violin. I use these plots to show the data and their approximated distributions rather than just the mean. I think this is helpful in making conclusions about what we’re actually seeing, because we can see the way the data overlap, rather than just comparing the mean. An important consideration: these plots generally obscure differences by making them look smaller than they are. If I plotted only the mean of each group (or a bar chart of some description), there’d be no need to be as ‘zoomed out’ as we are here, and the differences would look larger. Reminder, lower error is better. It can clearly be seen that the two systems that include ties (EPL and pre-lockout NHL) have the highest mean cumulative error. So, no ties please. The next-worst-performing system is the current one. This is mildly encouraging; at least the current system is an upgrade over the previous one. But let’s focus now on the two systems that would be an upgrade on the one we currently have. The IIHF points system is *just barely* an upgrade over the current system. This was surprising, as I have been on record saying I preferred a switch to thee IIHF system. Perhaps even more surprising: the standard Big-4 system outperforms any other, by almost any metric you could glean from the graph. It has the lowest maximum cumulative error; the lowest (actually the two lowest) minimum cumulative errors; and it also has the lowest mean cumulative error. Not only this, but the Big-4 system also has no specific regard for goal difference. Rather, it is simply perfectly correlated with wins. This means that the entire error present for this system is *strictly* with respect to goal difference. From this, we can infer two things: first, the more heavily you weigh wins over goal difference (which as I said earlier you can reasonably do), the more this system will outperform the others. This is because the error with respect to wins is zero. Second, we can infer that wins and goal differential are naturally correlated to a substantial enough degree that any system perfectly in line with one of them (wins) is not punished to a large degree with respect to the other (goal differential). 
+
+
+So in summary, I’ve had to walk back my preference for the IIHF system, as it is consistently outperformed by the standard big-4 system of just wins and losses. Taking a look at how the standings would have looked this past season with a purely wins-based points system (where I’ve set wins as worth two points to maintain consistency with the point range of a normal NHL season):
+
+
+![Hypothetical NHL Standings 2020-2021](StandingsTable.png)
+
+
+The tiebreaker here is non-empty net goal difference, purely out of convenience because I had included it to this point. A few interesting things to note: (1) Cup Finalist Montréal misses the playoffs in favour of Calgary, (2) the biggest rankings jumpers would be Calgary (three spots), and Tampa Bay, Edmonton, and New Jersey (two spots), and (3) the biggest fallers would be Dallas (five spots!), and Carolina (two spots).
+
+
+In summary, even though the current points system is an upgrade on the old system, it is not the best possible system. There are systems available and in use in other sports that ‘miss’ less often than this one, and the one we have is causing teams to make or miss the playoffs when they may deserve the opposite. And, given what can happen if you squeak in to the playoffs (see 20-21 Montréal or 06-07 Edmonton), making the playoffs when you deserve to make the playoffs – and missing when you deserve to miss – is absolutely crucial. It’s the least we can ask of the points system in use. Please, for the love of God, get rid of the loser point.
