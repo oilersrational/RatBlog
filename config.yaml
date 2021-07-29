@@ -1,6 +1,7 @@
 baseurl: https://ratblog.netlify.app/
 title: OilersRational Blog (RatBlog)
 author: Rational Oilers Fan
+googleAnalytics: "UA-203461885-1"
 canonifyurls: yes
 languagecode: en-uk
 theme: hugo-tanka
