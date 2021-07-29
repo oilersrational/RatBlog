@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tags on RationalOilers Blog (RatBlog)</title>
+    <title>Tags on OilersRational Blog (RatBlog)</title>
     <link>https://ratblog.netlify.app/tags/</link>
-    <description>Recent content in Tags on RationalOilers Blog (RatBlog)</description>
+    <description>Recent content in Tags on OilersRational Blog (RatBlog)</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-uk</language><atom:link href="https://ratblog.netlify.app/tags/index.xml" rel="self" type="application/rss+xml" />
   </channel>
